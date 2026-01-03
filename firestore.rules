@@ -1,0 +1,31 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // User profiles and nested data
+    match /users/{userId} {
+      // Users can only access their own data
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Income entries
+      match /incomes/{incomeId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      // Deductions
+      match /deductions/{deductionId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      // Tax calculations
+      match /taxCalculations/{calcId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+    
+    // Deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
