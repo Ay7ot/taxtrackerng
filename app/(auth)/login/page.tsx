@@ -61,7 +61,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-dvh flex flex-col bg-gray-50 max-w-4xl mx-auto">
+    <div className="min-h-dvh flex flex-col bg-gray-50 max-w-4xl mx-auto pb-safe">
       {/* Header */}
       <div className="bg-linear-to-br from-slate-900 to-slate-800 text-white px-6 pt-safe pb-16 rounded-b-[40px] shadow-xl">
         <div className="max-w-md mx-auto pt-8">
@@ -171,7 +171,7 @@ export default function LoginPage() {
       </div>
 
       {/* Footer */}
-      <div className="py-6 pb-safe text-center">
+      <div className="py-6 text-center">
         <p className="text-xs text-gray-400">Powered by IncomeTracker NG</p>
       </div>
     </div>

@@ -1034,6 +1034,10 @@ input[type="number"] {
   .pt-safe {
     padding-top: max(44px, var(--safe-top));
   }
+  
+  .pb-safe {
+    padding-bottom: max(24px, var(--safe-bottom));
+  }
 }
 
 /* ================================

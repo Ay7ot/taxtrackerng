@@ -42,7 +42,7 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-dvh bg-slate-50">
+    <div className="min-h-dvh bg-slate-50 pb-safe">
       <div className="min-h-screen flex flex-col lg:flex-row">
 
         {/* Left Panel - Desktop */}
@@ -190,7 +190,7 @@ export default function ForgotPasswordPage() {
           </div>
 
           {/* Mobile Footer */}
-          <div className="lg:hidden py-4 pb-safe text-center">
+          <div className="lg:hidden py-4 text-center">
             <p className="text-xs text-slate-400">Powered by IncomeTracker NG</p>
           </div>
         </div>

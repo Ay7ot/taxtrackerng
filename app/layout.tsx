@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   publisher: "TaxTracker NG",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: APP_NAME,
     startupImage: [
       {
@@ -136,7 +136,7 @@ export default function RootLayout({
         {/* PWA Meta */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="msapplication-TileColor" content="#2B4FE8" />
         <meta name="msapplication-TileImage" content="/icons/icon-144.png" />
 

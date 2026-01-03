@@ -55,13 +55,13 @@ export default function OnboardingPage() {
 
   return (
     <div 
-      className="min-h-screen min-h-dvh flex flex-col transition-colors duration-500"
+      className="min-h-screen min-h-dvh flex flex-col transition-colors duration-500 pt-safe pb-safe"
       style={{ backgroundColor: slide.bgColor }}
     >
       {/* Container for centering on desktop */}
       <div className="flex-1 flex flex-col w-full max-w-lg mx-auto">
         {/* Header with Skip */}
-        <header className="flex justify-end px-6 pt-safe">
+        <header className="flex justify-end px-6 pt-2">
           <button 
             onClick={handleSkip}
             className="py-3 px-4 text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors"
@@ -108,10 +108,7 @@ export default function OnboardingPage() {
         </main>
 
         {/* Bottom Navigation */}
-        <footer 
-          className="px-8"
-          style={{ paddingBottom: 'max(32px, calc(32px + env(safe-area-inset-bottom, 0px)))' }}
-        >
+        <footer className="px-8 pb-8">
           {/* Progress & Next Button */}
           <div className="flex items-center justify-between">
             {/* Progress Dots */}
@@ -163,7 +160,7 @@ export default function OnboardingPage() {
           </div>
 
           {/* Footer Text */}
-          <p className="text-center text-xs text-slate-500 mt-8">
+          <p className="text-center text-xs text-slate-500 mt-6">
             Powered by IncomeTracker NG
           </p>
         </footer>
