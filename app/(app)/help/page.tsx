@@ -53,7 +53,7 @@ export default function HelpPage() {
         {/* Features Explained */}
         <div className="space-y-3">
           <h3 className="font-semibold text-slate-900 px-1">Features Explained</h3>
-          
+
           <Accordion title="📊 Dashboard" defaultOpen>
             <p>Your Dashboard shows an overview of your financial status:</p>
             <ul className="list-disc pl-5 mt-2 space-y-1">
@@ -68,12 +68,12 @@ export default function HelpPage() {
             <p>The Calculator helps you understand your tax obligations:</p>
             <ul className="list-disc pl-5 mt-2 space-y-1">
               <li><strong>Gross Income:</strong> Enter your total annual income before deductions</li>
-              <li><strong>Tax Bands:</strong> See how your income is taxed at different rates (7% to 24%)</li>
+              <li><strong>Tax Bands:</strong> See how your income is taxed at different rates (0% to 25%)</li>
               <li><strong>Monthly Breakdown:</strong> View estimated monthly tax payments</li>
               <li><strong>Effective Rate:</strong> Your actual overall tax percentage</li>
             </ul>
             <div className="mt-3 p-3 bg-blue-50 rounded-lg">
-              <p className="text-sm text-blue-800"><strong>Tip:</strong> Nigerian tax uses progressive rates - you&apos;re only taxed at higher rates for income above each threshold.</p>
+              <p className="text-sm text-blue-800"><strong>Tip:</strong> Nigerian tax uses progressive rates - you&apos;re only taxed at higher rates for income above each threshold. The first ₦800,000 of your taxable income is completely tax-free!</p>
             </div>
           </Accordion>
 
@@ -116,19 +116,19 @@ export default function HelpPage() {
           </div>
           <div className="p-4">
             <p className="text-sm text-slate-600 mb-4">
-              Personal income tax in Nigeria uses a progressive rate system:
+              Personal income tax in Nigeria uses a progressive rate system (effective January 1, 2026):
             </p>
             <div className="space-y-2">
-              <TaxBand range="First ₦300,000" rate="7%" />
-              <TaxBand range="Next ₦300,000" rate="11%" />
-              <TaxBand range="Next ₦500,000" rate="15%" />
-              <TaxBand range="Next ₦500,000" rate="19%" />
-              <TaxBand range="Next ₦1,600,000" rate="21%" />
-              <TaxBand range="Above ₦3,200,000" rate="24%" />
+              <TaxBand range="₦0 - ₦800,000" rate="0%" />
+              <TaxBand range="₦800,001 - ₦3,000,000" rate="15%" />
+              <TaxBand range="₦3,000,001 - ₦12,000,000" rate="18%" />
+              <TaxBand range="₦12,000,001 - ₦25,000,000" rate="21%" />
+              <TaxBand range="₦25,000,001 - ₦50,000,000" rate="23%" />
+              <TaxBand range="Above ₦50,000,000" rate="25%" />
             </div>
             <div className="mt-4 p-3 bg-amber-50 rounded-lg">
               <p className="text-sm text-amber-800">
-                <strong>Note:</strong> These rates apply to taxable income after deductions. Consult a tax professional for personalized advice.
+                <strong>Note:</strong> These are the new tax rates effective January 1, 2026. Rates apply to taxable income after allowable deductions (rent relief, pensions, etc.). Consult a tax professional for personalized advice.
               </p>
             </div>
           </div>
@@ -137,7 +137,7 @@ export default function HelpPage() {
         {/* FAQs */}
         <div className="space-y-3">
           <h3 className="font-semibold text-slate-900 px-1">Frequently Asked Questions</h3>
-          
+
           <Accordion title="Is my data secure?">
             <p>Yes! Your data is stored securely using Firebase with encryption. We never share your financial information with third parties.</p>
           </Accordion>
@@ -166,7 +166,7 @@ export default function HelpPage() {
             If you have questions or need assistance, reach out to us:
           </p>
           <div className="space-y-2">
-            <a 
+            <a
               href="mailto:support@taxtrackerng.com"
               className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors"
             >
@@ -212,9 +212,9 @@ function Accordion({ title, children, defaultOpen = false }: { title: string; ch
         className="w-full px-4 py-3.5 flex items-center justify-between hover:bg-slate-50 transition-colors"
       >
         <span className="font-medium text-slate-900 text-sm">{title}</span>
-        <ChevronDown 
-          size={18} 
-          className={`text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} 
+        <ChevronDown
+          size={18}
+          className={`text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
         />
       </button>
       {isOpen && (
