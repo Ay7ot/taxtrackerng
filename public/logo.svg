@@ -1,50 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
     <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#2B4FE8"/>
+      <stop offset="0%" style="stop-color:#4F6AF5"/>
       <stop offset="100%" style="stop-color:#1E3CB0"/>
     </linearGradient>
-    <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#4ADE80"/>
-      <stop offset="100%" style="stop-color:#22C55E"/>
-    </linearGradient>
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#000" flood-opacity="0.15"/>
-    </filter>
   </defs>
   
-  <!-- Background Circle -->
-  <circle cx="256" cy="256" r="240" fill="url(#bgGradient)"/>
+  <!-- Full Square Background -->
+  <rect x="0" y="0" width="512" height="512" fill="url(#bgGradient)"/>
   
-  <!-- Inner Design Container -->
-  <g transform="translate(256, 256)">
-    <!-- Rising Chart Bars representing income tracking -->
-    <g transform="translate(-100, 30)">
-      <!-- Bar 1 -->
-      <rect x="0" y="0" width="40" height="60" rx="6" fill="rgba(255,255,255,0.3)" transform="translate(0, -60)"/>
-      <!-- Bar 2 -->
-      <rect x="55" y="0" width="40" height="90" rx="6" fill="rgba(255,255,255,0.5)" transform="translate(0, -90)"/>
-      <!-- Bar 3 - Tallest (highlighted) -->
-      <rect x="110" y="0" width="40" height="130" rx="6" fill="url(#accentGradient)" transform="translate(0, -130)"/>
-    </g>
-    
-    <!-- Circular Chart Ring -->
-    <circle cx="0" cy="0" r="100" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="20"/>
-    <path d="M 0 -100 A 100 100 0 0 1 86.6 50" fill="none" stroke="url(#accentGradient)" stroke-width="20" stroke-linecap="round"/>
-    
-    <!-- Nigerian Naira Symbol -->
-    <g transform="translate(0, 10)">
-      <!-- N character stylized as Naira -->
-      <text x="0" y="0" text-anchor="middle" dominant-baseline="central" 
-            font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" 
-            font-size="100" font-weight="800" fill="white" letter-spacing="-5">₦</text>
-    </g>
-    
-    <!-- Upward Arrow indicating growth -->
-    <g transform="translate(60, -70)">
-      <path d="M 0 30 L 0 0 L -12 12 M 0 0 L 12 12" 
-            fill="none" stroke="#4ADE80" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-    </g>
-  </g>
+  <!-- Centered Bold Naira Symbol -->
+  <text x="256" y="256" text-anchor="middle" dominant-baseline="central"
+        font-family="system-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif" 
+        font-size="280" font-weight="800" fill="white">₦</text>
 </svg>
-
