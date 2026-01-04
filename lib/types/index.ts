@@ -179,3 +179,43 @@ export interface NavItem {
   activeIcon: string;
 }
 
+// Corporate Tax Types (Nigeria Tax Act 2025)
+export type CompanySize = 'small' | 'standard' | 'large';
+
+export interface CorporateDeductions {
+  allowedExpenses: number;       // Interest, rent, salaries, repairs, R&D
+  capitalAllowances: number;     // Depreciation for tax purposes
+  lossesCarriedForward: number;  // Prior year losses
+}
+
+export interface CorporateTaxInput {
+  annualTurnover: number;
+  totalFixedAssets: number;
+  totalRevenue: number;
+  deductions: CorporateDeductions;
+  profitBeforeTax: number;
+  otherTaxesPaid: number;        // For ETR calculation
+  isProfessionalServices: boolean; // Affects small company eligibility
+}
+
+export interface CorporateTaxResult {
+  companySize: CompanySize;
+  isSmallCompany: boolean;
+  isLargeCompany: boolean;       // Turnover ≥ ₦20 billion
+  totalRevenue: number;
+  assessableProfit: number;
+  corporateIncomeTax: number;    // 30% or 0% for small
+  developmentLevy: number;       // 4% (except small companies)
+  subtotalTax: number;
+  effectiveTaxRate: number;
+  minimumETRRequired: boolean;
+  topUpTax: number;              // If ETR < 15% for large companies
+  totalTax: number;
+  netProfit: number;
+  taxBreakdown: {
+    cit: number;
+    devLevy: number;
+    topUp: number;
+  };
+}
+

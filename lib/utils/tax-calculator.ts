@@ -1,4 +1,4 @@
-import type { TaxBand, TaxBreakdown, TaxCalculationResult, Deductions } from '../types';
+import type { TaxBand, TaxBreakdown, TaxCalculationResult, Deductions, CorporateTaxInput, CorporateTaxResult, CompanySize } from '../types';
 
 /**
  * Nigerian Personal Income Tax Bands
@@ -212,5 +212,189 @@ export function getTaxBandDescription(band: TaxBand): string {
     return `Above ₦${band.min.toLocaleString()}`;
   }
   return `₦${band.min.toLocaleString()} - ₦${band.max.toLocaleString()}`;
+}
+
+// ================================
+// Corporate Income Tax (CIT) Calculator
+// Nigeria Tax Act 2025 (Effective January 2026)
+// ================================
+
+/**
+ * Corporate Tax Rate Constants
+ */
+export const CIT_RATE = 0.30;              // 30% Corporate Income Tax
+export const DEVELOPMENT_LEVY_RATE = 0.04; // 4% Development Levy
+export const MINIMUM_ETR = 0.15;           // 15% Minimum Effective Tax Rate
+
+// Thresholds
+export const SMALL_COMPANY_TURNOVER_LIMIT = 50_000_000;   // ₦50 million
+export const SMALL_COMPANY_ASSETS_LIMIT = 250_000_000;    // ₦250 million
+export const LARGE_COMPANY_TURNOVER_THRESHOLD = 20_000_000_000; // ₦20 billion
+
+/**
+ * Determine company size based on turnover, assets, and business type
+ */
+export function determineCompanySize(
+  annualTurnover: number,
+  totalFixedAssets: number,
+  isProfessionalServices: boolean
+): CompanySize {
+  // Small company criteria: turnover ≤ ₦50M AND assets ≤ ₦250M AND not professional services
+  const isSmall =
+    annualTurnover <= SMALL_COMPANY_TURNOVER_LIMIT &&
+    totalFixedAssets <= SMALL_COMPANY_ASSETS_LIMIT &&
+    !isProfessionalServices;
+
+  if (isSmall) return 'small';
+
+  // Large company: turnover ≥ ₦20 billion (subject to minimum ETR)
+  if (annualTurnover >= LARGE_COMPANY_TURNOVER_THRESHOLD) return 'large';
+
+  return 'standard';
+}
+
+/**
+ * Check if company qualifies as small (tax exempt)
+ */
+export function isSmallCompany(
+  annualTurnover: number,
+  totalFixedAssets: number,
+  isProfessionalServices: boolean
+): boolean {
+  return determineCompanySize(annualTurnover, totalFixedAssets, isProfessionalServices) === 'small';
+}
+
+/**
+ * Calculate assessable profit for corporate tax
+ * Assessable profit = Revenue - Allowable Expenses - Capital Allowances - Losses Carried Forward
+ */
+export function calculateAssessableProfit(
+  totalRevenue: number,
+  allowedExpenses: number,
+  capitalAllowances: number,
+  lossesCarriedForward: number
+): number {
+  const assessableProfit = totalRevenue - allowedExpenses - capitalAllowances - lossesCarriedForward;
+  return Math.max(0, assessableProfit);
+}
+
+/**
+ * Calculate Corporate Income Tax
+ */
+export function calculateCIT(assessableProfit: number, isSmall: boolean): number {
+  if (isSmall) return 0;
+  return assessableProfit * CIT_RATE;
+}
+
+/**
+ * Calculate Development Levy (4% on assessable profits, except small companies)
+ */
+export function calculateDevelopmentLevy(assessableProfit: number, isSmall: boolean): number {
+  if (isSmall) return 0;
+  return assessableProfit * DEVELOPMENT_LEVY_RATE;
+}
+
+/**
+ * Calculate Effective Tax Rate
+ */
+export function calculateCorporateETR(totalTax: number, profitBeforeTax: number): number {
+  if (profitBeforeTax <= 0) return 0;
+  return totalTax / profitBeforeTax;
+}
+
+/**
+ * Calculate top-up tax if ETR is below 15% (for large companies)
+ */
+export function calculateTopUpTax(
+  currentTotalTax: number,
+  profitBeforeTax: number,
+  isLargeCompany: boolean
+): number {
+  if (!isLargeCompany || profitBeforeTax <= 0) return 0;
+
+  const currentETR = calculateCorporateETR(currentTotalTax, profitBeforeTax);
+
+  if (currentETR >= MINIMUM_ETR) return 0;
+
+  // Top-up tax brings ETR to 15%
+  const requiredTax = profitBeforeTax * MINIMUM_ETR;
+  return requiredTax - currentTotalTax;
+}
+
+/**
+ * Complete Corporate Tax Calculation
+ */
+export function calculateCorporateTax(input: CorporateTaxInput): CorporateTaxResult {
+  const {
+    annualTurnover,
+    totalFixedAssets,
+    totalRevenue,
+    deductions,
+    profitBeforeTax,
+    otherTaxesPaid,
+    isProfessionalServices,
+  } = input;
+
+  // Determine company size
+  const companySize = determineCompanySize(annualTurnover, totalFixedAssets, isProfessionalServices);
+  const isSmall = companySize === 'small';
+  const isLarge = companySize === 'large';
+
+  // Calculate assessable profit
+  const assessableProfit = calculateAssessableProfit(
+    totalRevenue,
+    deductions.allowedExpenses,
+    deductions.capitalAllowances,
+    deductions.lossesCarriedForward
+  );
+
+  // Calculate base taxes
+  const corporateIncomeTax = calculateCIT(assessableProfit, isSmall);
+  const developmentLevy = calculateDevelopmentLevy(assessableProfit, isSmall);
+  const subtotalTax = corporateIncomeTax + developmentLevy + otherTaxesPaid;
+
+  // Calculate ETR and potential top-up tax
+  const effectiveTaxRate = calculateCorporateETR(subtotalTax, profitBeforeTax);
+  const minimumETRRequired = isLarge && effectiveTaxRate < MINIMUM_ETR && profitBeforeTax > 0;
+  const topUpTax = calculateTopUpTax(subtotalTax, profitBeforeTax, isLarge);
+
+  // Total tax
+  const totalTax = subtotalTax + topUpTax;
+  const finalETR = calculateCorporateETR(totalTax, profitBeforeTax);
+
+  // Net profit after tax
+  const netProfit = profitBeforeTax - totalTax;
+
+  return {
+    companySize,
+    isSmallCompany: isSmall,
+    isLargeCompany: isLarge,
+    totalRevenue,
+    assessableProfit,
+    corporateIncomeTax,
+    developmentLevy,
+    subtotalTax,
+    effectiveTaxRate: finalETR,
+    minimumETRRequired,
+    topUpTax,
+    totalTax,
+    netProfit,
+    taxBreakdown: {
+      cit: corporateIncomeTax,
+      devLevy: developmentLevy,
+      topUp: topUpTax,
+    },
+  };
+}
+
+/**
+ * Format company size for display
+ */
+export function formatCompanySize(size: CompanySize): string {
+  switch (size) {
+    case 'small': return 'Small Company (Tax Exempt)';
+    case 'large': return 'Large Company (₦20B+ Turnover)';
+    default: return 'Standard Company';
+  }
 }
 
