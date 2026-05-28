@@ -14,6 +14,11 @@ import {
 } from 'react';
 import clsx from 'clsx';
 import { Eye, EyeOff } from 'lucide-react';
+import {
+  formatAmountInputDisplay,
+  formatAmountInputString,
+  parseAmountInput,
+} from '@/lib/utils/formatters';
 
 // Base Input Props
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -71,9 +76,8 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               'text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)]',
               'transition-all duration-150',
               'focus:outline-none focus:border-[var(--color-primary)]',
-              'focus:ring-2 focus:ring-[var(--color-primary)]/20',
               'disabled:bg-[var(--color-bg-secondary)] disabled:cursor-not-allowed',
-              error && 'border-[var(--color-error)] focus:border-[var(--color-error)] focus:ring-[var(--color-error)]/10',
+              error && 'border-[var(--color-error)] focus:border-[var(--color-error)]',
               leftIcon && 'pl-12',
               (rightIcon || isPassword) && 'pr-12',
               className
@@ -117,24 +121,26 @@ export interface CurrencyInputProps extends Omit<InputProps, 'type' | 'onChange'
 
 export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
   ({ value, onChange, ...props }, ref) => {
-    const [displayValue, setDisplayValue] = useState(
-      value ? value.toLocaleString('en-NG') : ''
-    );
+    const [displayValue, setDisplayValue] = useState(formatAmountInputDisplay(value));
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const rawValue = e.target.value.replace(/[^0-9]/g, '');
-      const numValue = parseInt(rawValue, 10) || 0;
-      setDisplayValue(numValue ? numValue.toLocaleString('en-NG') : '');
-      onChange(numValue);
+      const formatted = formatAmountInputString(e.target.value);
+      setDisplayValue(formatted);
+      onChange(parseAmountInput(formatted));
+    };
+
+    const handleBlur = () => {
+      setDisplayValue(formatAmountInputDisplay(value));
     };
 
     return (
       <Input
         ref={ref}
         type="text"
-        inputMode="numeric"
+        inputMode="decimal"
         value={displayValue}
         onChange={handleChange}
+        onBlur={handleBlur}
         leftIcon={<span className="font-medium text-[var(--color-text-secondary)]">₦</span>}
         {...props}
       />
@@ -175,9 +181,8 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
             'text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)]',
             'transition-all duration-150 resize-y',
             'focus:outline-none focus:border-[var(--color-primary)]',
-            'focus:ring-2 focus:ring-[var(--color-primary)]/20',
             'disabled:bg-[var(--color-bg-secondary)] disabled:cursor-not-allowed',
-            error && 'border-[var(--color-error)] focus:border-[var(--color-error)] focus:ring-[var(--color-error)]/10',
+            error && 'border-[var(--color-error)] focus:border-[var(--color-error)]',
             className
           )}
           {...props}
@@ -232,9 +237,8 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
               'text-[var(--color-text-primary)]',
               'transition-all duration-150 appearance-none cursor-pointer',
               'focus:outline-none focus:border-[var(--color-primary)]',
-              'focus:ring-2 focus:ring-[var(--color-primary)]/20',
               'disabled:bg-[var(--color-bg-secondary)] disabled:cursor-not-allowed',
-              error && 'border-[var(--color-error)]',
+              error && 'border-[var(--color-error)] focus:border-[var(--color-error)]',
               className
             )}
             {...props}

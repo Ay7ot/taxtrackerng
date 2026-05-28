@@ -3,17 +3,18 @@
 import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { calculateTax, TAX_BANDS, calculateCorporateTax, formatCompanySize, SMALL_COMPANY_TURNOVER_LIMIT, SMALL_COMPANY_ASSETS_LIMIT, LARGE_COMPANY_TURNOVER_THRESHOLD, CIT_RATE, DEVELOPMENT_LEVY_RATE, MINIMUM_ETR } from '@/lib/utils/tax-calculator';
-import { formatCurrency as formatCurrencyRaw } from '@/lib/utils/formatters';
+import {
+  formatCurrency as formatCurrencyRaw,
+  formatAmountInputDisplay,
+  formatAmountInputString,
+  parseAmountInput,
+} from '@/lib/utils/formatters';
 import { usePrivacyFormatters } from '@/lib/hooks/use-privacy-formatters';
 import { HideAmountsToggle } from '@/components/privacy/hide-amounts-toggle';
 import type { CorporateTaxInput, CorporateTaxResult } from '@/lib/types';
 
 type CalculatorMode = 'personal' | 'corporate';
 type IncomeInputMode = 'annual' | 'monthly';
-
-function parseNumericInput(value: string): number {
-  return parseInt(value.replace(/[^0-9]/g, ''), 10) || 0;
-}
 
 function CurrencyInput({
   value,
@@ -25,19 +26,53 @@ function CurrencyInput({
   size?: 'lg' | 'sm';
 }) {
   const isLarge = size === 'lg';
+  const [displayValue, setDisplayValue] = useState(formatAmountInputDisplay(value));
 
   return (
     <div className="relative">
       <span className={`absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-300 ${isLarge ? 'text-2xl' : 'text-sm'}`}>₦</span>
       <input
         type="text"
-        inputMode="numeric"
-        value={value ? value.toLocaleString('en-NG') : ''}
-        onChange={(e) => onChange(parseNumericInput(e.target.value))}
+        inputMode="decimal"
+        value={displayValue}
+        onChange={(e) => {
+          const formatted = formatAmountInputString(e.target.value);
+          setDisplayValue(formatted);
+          onChange(parseAmountInput(formatted));
+        }}
+        onBlur={() => setDisplayValue(formatAmountInputDisplay(value))}
         placeholder="0"
         className={`w-full pl-12 pr-4 rounded-xl font-bold text-slate-900 bg-slate-50 border-2 border-slate-200 focus:outline-none focus:bg-white focus:border-blue-500 placeholder:text-slate-300 number-display ${isLarge ? 'h-16 text-3xl' : 'h-11 text-base'}`}
       />
     </div>
+  );
+}
+
+function FormattedAmountInput({
+  value,
+  onChange,
+  className,
+}: {
+  value: number;
+  onChange: (value: number) => void;
+  className: string;
+}) {
+  const [displayValue, setDisplayValue] = useState(formatAmountInputDisplay(value));
+
+  return (
+    <input
+      type="text"
+      inputMode="decimal"
+      value={displayValue}
+      onChange={(e) => {
+        const formatted = formatAmountInputString(e.target.value);
+        setDisplayValue(formatted);
+        onChange(parseAmountInput(formatted));
+      }}
+      onBlur={() => setDisplayValue(formatAmountInputDisplay(value))}
+      placeholder="0"
+      className={className}
+    />
   );
 }
 
@@ -322,23 +357,16 @@ function PersonalTaxCalculator() {
                 </div>
                 <span className="text-xs text-slate-400">{item.hint}</span>
               </div>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">₦</span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={deductions[item.key as keyof typeof deductions] || ''}
-                  onChange={(e) => {
-                    const rawValue = e.target.value.replace(/[^0-9]/g, '');
-                    setDeductions({
-                      ...deductions,
-                      [item.key]: parseInt(rawValue, 10) || 0,
-                    });
-                  }}
-                  placeholder="0"
-                  className="w-full h-11 pl-8 pr-4 rounded-lg text-slate-900 bg-slate-50 border border-slate-200 focus:outline-none focus:bg-white focus:border-violet-500 placeholder:text-slate-300 number-display"
-                />
-              </div>
+              <CurrencyInput
+                size="sm"
+                value={deductions[item.key as keyof typeof deductions]}
+                onChange={(value) =>
+                  setDeductions({
+                    ...deductions,
+                    [item.key]: value,
+                  })
+                }
+              />
             </div>
           ))}
         </div>
@@ -470,14 +498,6 @@ function CorporateTaxCalculator() {
     }));
   };
 
-  const parseNumber = (value: string): number => {
-    return parseInt(value.replace(/[^0-9]/g, ''), 10) || 0;
-  };
-
-  const formatInputValue = (value: number): string => {
-    return value ? value.toLocaleString('en-NG') : '';
-  };
-
   return (
     <>
       {/* Company Classification Info */}
@@ -507,12 +527,9 @@ function CorporateTaxCalculator() {
           </label>
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-bold text-slate-300">₦</span>
-            <input
-              type="text"
-              inputMode="numeric"
-              value={formatInputValue(inputs.annualTurnover)}
-              onChange={(e) => handleInputChange('annualTurnover', parseNumber(e.target.value))}
-              placeholder="0"
+            <FormattedAmountInput
+              value={inputs.annualTurnover}
+              onChange={(value) => handleInputChange('annualTurnover', value)}
               className="w-full h-16 pl-12 pr-4 rounded-xl text-3xl font-bold text-slate-900 bg-slate-50 border-2 border-slate-200 focus:outline-none focus:bg-white focus:border-indigo-500 placeholder:text-slate-300 number-display"
             />
           </div>
@@ -525,12 +542,9 @@ function CorporateTaxCalculator() {
           </label>
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-slate-300">₦</span>
-            <input
-              type="text"
-              inputMode="numeric"
-              value={formatInputValue(inputs.totalRevenue)}
-              onChange={(e) => handleInputChange('totalRevenue', parseNumber(e.target.value))}
-              placeholder="0"
+            <FormattedAmountInput
+              value={inputs.totalRevenue}
+              onChange={(value) => handleInputChange('totalRevenue', value)}
               className="w-full h-14 pl-10 pr-4 rounded-xl text-xl font-bold text-slate-900 bg-slate-50 border-2 border-slate-200 focus:outline-none focus:bg-white focus:border-indigo-500 placeholder:text-slate-300 number-display"
             />
           </div>
@@ -542,12 +556,9 @@ function CorporateTaxCalculator() {
           </label>
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-slate-300">₦</span>
-            <input
-              type="text"
-              inputMode="numeric"
-              value={formatInputValue(inputs.totalFixedAssets)}
-              onChange={(e) => handleInputChange('totalFixedAssets', parseNumber(e.target.value))}
-              placeholder="0"
+            <FormattedAmountInput
+              value={inputs.totalFixedAssets}
+              onChange={(value) => handleInputChange('totalFixedAssets', value)}
               className="w-full h-14 pl-10 pr-4 rounded-xl text-xl font-bold text-slate-900 bg-slate-50 border-2 border-slate-200 focus:outline-none focus:bg-white focus:border-indigo-500 placeholder:text-slate-300 number-display"
             />
           </div>
@@ -627,12 +638,9 @@ function CorporateTaxCalculator() {
             </div>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">₦</span>
-              <input
-                type="text"
-                inputMode="numeric"
-                value={formatInputValue(inputs.deductions.allowedExpenses)}
-                onChange={(e) => handleDeductionChange('allowedExpenses', parseNumber(e.target.value))}
-                placeholder="0"
+              <FormattedAmountInput
+                value={inputs.deductions.allowedExpenses}
+                onChange={(value) => handleDeductionChange('allowedExpenses', value)}
                 className="w-full h-11 pl-8 pr-4 rounded-lg text-slate-900 bg-slate-50 border border-slate-200 focus:outline-none focus:bg-white focus:border-violet-500 placeholder:text-slate-300 number-display"
               />
             </div>
@@ -648,12 +656,9 @@ function CorporateTaxCalculator() {
             </div>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">₦</span>
-              <input
-                type="text"
-                inputMode="numeric"
-                value={formatInputValue(inputs.deductions.capitalAllowances)}
-                onChange={(e) => handleDeductionChange('capitalAllowances', parseNumber(e.target.value))}
-                placeholder="0"
+              <FormattedAmountInput
+                value={inputs.deductions.capitalAllowances}
+                onChange={(value) => handleDeductionChange('capitalAllowances', value)}
                 className="w-full h-11 pl-8 pr-4 rounded-lg text-slate-900 bg-slate-50 border border-slate-200 focus:outline-none focus:bg-white focus:border-violet-500 placeholder:text-slate-300 number-display"
               />
             </div>
@@ -669,12 +674,9 @@ function CorporateTaxCalculator() {
             </div>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">₦</span>
-              <input
-                type="text"
-                inputMode="numeric"
-                value={formatInputValue(inputs.deductions.lossesCarriedForward)}
-                onChange={(e) => handleDeductionChange('lossesCarriedForward', parseNumber(e.target.value))}
-                placeholder="0"
+              <FormattedAmountInput
+                value={inputs.deductions.lossesCarriedForward}
+                onChange={(value) => handleDeductionChange('lossesCarriedForward', value)}
                 className="w-full h-11 pl-8 pr-4 rounded-lg text-slate-900 bg-slate-50 border border-slate-200 focus:outline-none focus:bg-white focus:border-violet-500 placeholder:text-slate-300 number-display"
               />
             </div>
@@ -689,12 +691,9 @@ function CorporateTaxCalculator() {
         </label>
         <div className="relative">
           <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-bold text-slate-300">₦</span>
-          <input
-            type="text"
-            inputMode="numeric"
-            value={formatInputValue(inputs.profitBeforeTax)}
-            onChange={(e) => handleInputChange('profitBeforeTax', parseNumber(e.target.value))}
-            placeholder="0"
+          <FormattedAmountInput
+            value={inputs.profitBeforeTax}
+            onChange={(value) => handleInputChange('profitBeforeTax', value)}
             className="w-full h-16 pl-12 pr-4 rounded-xl text-3xl font-bold text-slate-900 bg-slate-50 border-2 border-slate-200 focus:outline-none focus:bg-white focus:border-indigo-500 placeholder:text-slate-300 number-display"
           />
         </div>
@@ -742,12 +741,9 @@ function CorporateTaxCalculator() {
           </div>
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">₦</span>
-            <input
-              type="text"
-              inputMode="numeric"
-              value={formatInputValue(inputs.otherTaxesPaid)}
-              onChange={(e) => handleInputChange('otherTaxesPaid', parseNumber(e.target.value))}
-              placeholder="0"
+            <FormattedAmountInput
+              value={inputs.otherTaxesPaid}
+              onChange={(value) => handleInputChange('otherTaxesPaid', value)}
               className="w-full h-11 pl-8 pr-4 rounded-lg text-slate-900 bg-slate-50 border border-slate-200 focus:outline-none focus:bg-white focus:border-violet-500 placeholder:text-slate-300 number-display"
             />
           </div>

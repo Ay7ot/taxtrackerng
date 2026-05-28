@@ -246,7 +246,7 @@ export default function ProfilePage() {
               type="text"
               value={editName}
               onChange={(e) => setEditName(e.target.value)}
-              className="w-full h-12 px-4 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all text-slate-800"
+              className="w-full h-12 px-4 rounded-xl border border-slate-200 focus:border-blue-500 outline-none transition-all text-slate-800"
               placeholder="Enter your name"
             />
           </div>
@@ -259,7 +259,7 @@ export default function ProfilePage() {
               type="tel"
               value={editPhone}
               onChange={(e) => setEditPhone(e.target.value)}
-              className="w-full h-12 px-4 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all text-slate-800"
+              className="w-full h-12 px-4 rounded-xl border border-slate-200 focus:border-blue-500 outline-none transition-all text-slate-800"
               placeholder="+234 xxx xxx xxxx"
             />
           </div>
@@ -334,7 +334,7 @@ export default function ProfilePage() {
               type="password"
               value={deletePassword}
               onChange={(e) => setDeletePassword(e.target.value)}
-              className="w-full h-12 px-4 rounded-xl border border-slate-200 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none transition-all text-slate-800"
+              className="w-full h-12 px-4 rounded-xl border border-slate-200 focus:border-red-500 outline-none transition-all text-slate-800"
               placeholder="Enter your password"
             />
           </div>

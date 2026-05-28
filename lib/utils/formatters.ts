@@ -47,6 +47,49 @@ export function parseCurrency(value: string): number {
   return isNaN(parsed) ? 0 : parsed;
 }
 
+/** Allow digits and a single decimal point (max 2 decimal places) while typing */
+export function sanitizeAmountString(value: string): string {
+  const cleaned = value.replace(/,/g, '').replace(/[^0-9.]/g, '');
+  const dotIndex = cleaned.indexOf('.');
+  if (dotIndex === -1) return cleaned;
+
+  const before = cleaned.slice(0, dotIndex);
+  const after = cleaned.slice(dotIndex + 1).replace(/\./g, '').slice(0, 2);
+  return `${before}.${after}`;
+}
+
+/** Parse user-entered amount text into a number */
+export function parseAmountInput(value: string): number {
+  const sanitized = sanitizeAmountString(value);
+  if (!sanitized || sanitized === '.') return 0;
+  const parsed = parseFloat(sanitized);
+  return isNaN(parsed) ? 0 : parsed;
+}
+
+/** Format amount for input display, preserving an trailing decimal point */
+export function formatAmountInputString(value: string): string {
+  const sanitized = sanitizeAmountString(value);
+  if (!sanitized) return '';
+
+  const endsWithDot = sanitized.endsWith('.');
+  const [whole = '', decimal] = sanitized.split('.');
+
+  if (!whole && sanitized.startsWith('.')) {
+    return decimal !== undefined ? `.${decimal}` : '.';
+  }
+
+  const formattedWhole = whole ? Number(whole).toLocaleString('en-NG') : '';
+  if (endsWithDot) return `${formattedWhole}.`;
+  if (decimal !== undefined) return `${formattedWhole}.${decimal}`;
+  return formattedWhole;
+}
+
+/** Format a numeric amount for input display */
+export function formatAmountInputDisplay(value: number): string {
+  if (value === 0) return '';
+  return value.toLocaleString('en-NG', { maximumFractionDigits: 2 });
+}
+
 /**
  * Format a date for display
  * @param date - Date to format

@@ -89,7 +89,7 @@ export default function IncomePage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search income..."
-              className="w-full h-10 pl-10 pr-4 rounded-lg bg-white/10 text-white placeholder:text-slate-400 border-none focus:outline-none focus:ring-2 focus:ring-white/20 text-sm"
+              className="w-full h-10 pl-10 pr-4 rounded-lg bg-white/10 text-white placeholder:text-slate-400 border border-transparent focus:outline-none focus:border-white/30 text-sm"
             />
           </div>
 

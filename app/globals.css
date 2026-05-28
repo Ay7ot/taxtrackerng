@@ -143,11 +143,20 @@ body {
   overflow-x: hidden;
 }
 
-/* Focus States - Enhanced */
-:focus-visible {
+/* Focus States - buttons and links only; form fields use border focus styles */
+:focus-visible:not(input):not(textarea):not(select) {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
+}
+
+input:focus,
+textarea:focus,
+select:focus,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
 }
 
 /* Remove tap highlight */

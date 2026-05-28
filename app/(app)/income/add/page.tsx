@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useIncomes } from '@/lib/hooks/useIncomes';
 import { useToast } from '@/components/ui/toast';
 import { DateInput } from '@/components/ui/input';
-import { toLocalDateInputValue, fromLocalDateInputValue } from '@/lib/utils/formatters';
+import { toLocalDateInputValue, fromLocalDateInputValue, formatAmountInputDisplay, formatAmountInputString, parseAmountInput } from '@/lib/utils/formatters';
 import type { IncomeCategory, IncomeFormData } from '@/lib/types';
 
 const categoryOptions = [
@@ -33,6 +33,7 @@ export default function AddIncomePage() {
     notes: '',
   });
   const [errors, setErrors] = useState<Partial<Record<keyof IncomeFormData, string>>>({});
+  const [amountDisplay, setAmountDisplay] = useState('');
 
   const validateForm = () => {
     const newErrors: typeof errors = {};
@@ -101,12 +102,14 @@ export default function AddIncomePage() {
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-bold text-slate-300">₦</span>
               <input
                 type="text"
-                inputMode="numeric"
-                value={formData.amount ? formData.amount.toLocaleString('en-NG') : ''}
+                inputMode="decimal"
+                value={amountDisplay}
                 onChange={(e) => {
-                  const rawValue = e.target.value.replace(/[^0-9]/g, '');
-                  setFormData({ ...formData, amount: parseInt(rawValue, 10) || 0 });
+                  const formatted = formatAmountInputString(e.target.value);
+                  setAmountDisplay(formatted);
+                  setFormData({ ...formData, amount: parseAmountInput(formatted) });
                 }}
+                onBlur={() => setAmountDisplay(formatAmountInputDisplay(formData.amount))}
                 placeholder="0"
                 className={`
                   w-full h-16 pl-12 pr-4 rounded-xl
@@ -181,7 +184,7 @@ export default function AddIncomePage() {
               value={toLocalDateInputValue(formData.date)}
               onChange={(e) => setFormData({ ...formData, date: fromLocalDateInputValue(e.target.value) })}
               max={toLocalDateInputValue(new Date())}
-              className="rounded-xl bg-slate-50 border-2 border-slate-200 text-slate-900 focus:bg-white focus:border-blue-500 focus:ring-0"
+              className="rounded-xl bg-slate-50 border-2 border-slate-200 text-slate-900 focus:outline-none focus:bg-white focus:border-blue-500"
             />
           </div>
 
