@@ -1116,3 +1116,47 @@ input[type="number"] {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* ================================
+   iOS Date Input Fixes
+   ================================ */
+
+@supports (-webkit-touch-callout: none) {
+  html {
+    scroll-behavior: auto;
+    overscroll-behavior-y: none;
+  }
+
+  body {
+    overscroll-behavior-y: none;
+  }
+}
+
+input[type='date'],
+input[type='datetime-local'] {
+  font-size: 16px;
+  line-height: 1.25;
+  touch-action: manipulation;
+  max-width: 100%;
+  min-height: 48px;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+input[type='date']::-webkit-date-and-time-value {
+  min-width: 0;
+  text-align: left;
+}
+
+input[type='date']::-webkit-calendar-picker-indicator {
+  opacity: 0.65;
+  cursor: pointer;
+}
+
+body.date-input-open {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+  left: 0;
+  right: 0;
+}

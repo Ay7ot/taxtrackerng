@@ -3,7 +3,7 @@
 import { useAuth } from '@/lib/auth-context';
 import { useIncomeStats } from '@/lib/hooks/useIncomes';
 import { calculateTax } from '@/lib/utils/tax-calculator';
-import { formatCurrency, formatDate, getGreeting, getCategoryLabel } from '@/lib/utils/formatters';
+import { formatCurrency, formatDate, getGreeting, getCategoryLabel, formatPercentage } from '@/lib/utils/formatters';
 import Link from 'next/link';
 
 export default function DashboardPage() {
@@ -90,8 +90,8 @@ export default function DashboardPage() {
             color="blue"
           />
           <StatCard
-            label="Tax Rate"
-            value={`${(taxResult.effectiveRate * 100).toFixed(1)}%`}
+            label="Tax Rate So Far"
+            value={formatPercentage(taxResult.effectiveRate)}
             subtitle={`${formatCurrency(taxResult.totalTax, { compact: true })} tax`}
             icon={
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -151,7 +151,7 @@ export default function DashboardPage() {
               </div>
             </div>
             <Link
-              href="/calculator"
+              href={`/calculator?income=${totalThisYear}`}
               className="inline-flex items-center gap-1.5 mt-4 text-sm font-medium text-white hover:text-blue-100 transition-colors"
             >
               View breakdown
@@ -244,7 +244,7 @@ function StatCard({
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
             {change > 0 ? <path d="M18 15l-6-6-6 6" /> : <path d="M6 9l6 6 6-6" />}
           </svg>
-          {Math.abs(Math.round(change))}% vs last month
+          {formatPercentage(Math.abs(change) / 100, 2)} vs last month
         </div>
       )}
     </div>

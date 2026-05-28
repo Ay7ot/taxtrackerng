@@ -7,6 +7,10 @@ import {
   type SelectHTMLAttributes,
   type ReactNode,
   useState,
+  useRef,
+  useEffect,
+  useCallback,
+  type FocusEvent,
 } from 'react';
 import clsx from 'clsx';
 import { Eye, EyeOff } from 'lucide-react';
@@ -277,19 +281,77 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
 
 Select.displayName = 'Select';
 
+function lockBodyScroll() {
+  if (typeof window === 'undefined' || document.body.classList.contains('date-input-open')) return;
+
+  const scrollY = window.scrollY;
+  document.body.dataset.scrollY = String(scrollY);
+  document.body.classList.add('date-input-open');
+  document.body.style.top = `-${scrollY}px`;
+}
+
+function unlockBodyScroll() {
+  if (typeof window === 'undefined' || !document.body.classList.contains('date-input-open')) return;
+
+  const scrollY = Number(document.body.dataset.scrollY || '0');
+  document.body.classList.remove('date-input-open');
+  document.body.style.top = '';
+  delete document.body.dataset.scrollY;
+  window.scrollTo(0, scrollY);
+}
+
 // Date Input
 export interface DateInputProps extends Omit<InputProps, 'type'> {}
 
-export const DateInput = forwardRef<HTMLInputElement, DateInputProps>((props, ref) => {
-  return (
-    <Input
-      ref={ref}
-      type="date"
-      className="appearance-none [&::-webkit-calendar-picker-indicator]:opacity-60"
-      {...props}
-    />
-  );
-});
+export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
+  ({ onFocus, onBlur, className, ...props }, ref) => {
+    const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    useEffect(() => {
+      return () => {
+        if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current);
+        unlockBodyScroll();
+      };
+    }, []);
+
+    const handleFocus = useCallback(
+      (event: FocusEvent<HTMLInputElement>) => {
+        if (blurTimeoutRef.current) {
+          clearTimeout(blurTimeoutRef.current);
+          blurTimeoutRef.current = null;
+        }
+        lockBodyScroll();
+        onFocus?.(event);
+      },
+      [onFocus]
+    );
+
+    const handleBlur = useCallback(
+      (event: FocusEvent<HTMLInputElement>) => {
+        blurTimeoutRef.current = setTimeout(() => {
+          unlockBodyScroll();
+          blurTimeoutRef.current = null;
+        }, 150);
+        onBlur?.(event);
+      },
+      [onBlur]
+    );
+
+    return (
+      <Input
+        ref={ref}
+        type="date"
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+        className={clsx(
+          'appearance-none [&::-webkit-calendar-picker-indicator]:opacity-60',
+          className
+        )}
+        {...props}
+      />
+    );
+  }
+);
 
 DateInput.displayName = 'DateInput';
 

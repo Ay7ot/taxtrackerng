@@ -1,11 +1,43 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { calculateTax, TAX_BANDS, calculateCorporateTax, formatCompanySize, SMALL_COMPANY_TURNOVER_LIMIT, SMALL_COMPANY_ASSETS_LIMIT, LARGE_COMPANY_TURNOVER_THRESHOLD, CIT_RATE, DEVELOPMENT_LEVY_RATE, MINIMUM_ETR } from '@/lib/utils/tax-calculator';
-import { formatCurrency } from '@/lib/utils/formatters';
+import { formatCurrency, formatPercentage } from '@/lib/utils/formatters';
 import type { CorporateTaxInput, CorporateTaxResult } from '@/lib/types';
 
 type CalculatorMode = 'personal' | 'corporate';
+type IncomeInputMode = 'annual' | 'monthly';
+
+function parseNumericInput(value: string): number {
+  return parseInt(value.replace(/[^0-9]/g, ''), 10) || 0;
+}
+
+function CurrencyInput({
+  value,
+  onChange,
+  size = 'lg',
+}: {
+  value: number;
+  onChange: (value: number) => void;
+  size?: 'lg' | 'sm';
+}) {
+  const isLarge = size === 'lg';
+
+  return (
+    <div className="relative">
+      <span className={`absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-300 ${isLarge ? 'text-2xl' : 'text-sm'}`}>₦</span>
+      <input
+        type="text"
+        inputMode="numeric"
+        value={value ? value.toLocaleString('en-NG') : ''}
+        onChange={(e) => onChange(parseNumericInput(e.target.value))}
+        placeholder="0"
+        className={`w-full pl-12 pr-4 rounded-xl font-bold text-slate-900 bg-slate-50 border-2 border-slate-200 focus:outline-none focus:bg-white focus:border-blue-500 placeholder:text-slate-300 number-display ${isLarge ? 'h-16 text-3xl' : 'h-11 text-base'}`}
+      />
+    </div>
+  );
+}
 
 export default function CalculatorPage() {
   const [mode, setMode] = useState<CalculatorMode>('personal');
@@ -61,7 +93,13 @@ export default function CalculatorPage() {
       </header>
 
       <main className="max-w-2xl mx-auto px-4 pb-24">
-        {mode === 'personal' ? <PersonalTaxCalculator /> : <CorporateTaxCalculator />}
+        {mode === 'personal' ? (
+          <Suspense fallback={<CalculatorSkeleton />}>
+            <PersonalTaxCalculator />
+          </Suspense>
+        ) : (
+          <CorporateTaxCalculator />
+        )}
       </main>
     </div>
   );
@@ -71,7 +109,14 @@ export default function CalculatorPage() {
 // Personal Income Tax Calculator
 // ================================
 function PersonalTaxCalculator() {
-  const [income, setIncome] = useState<number>(0);
+  const searchParams = useSearchParams();
+  const incomeFromUrl = parseInt(searchParams.get('income') ?? '', 10);
+  const hasUrlIncome = !isNaN(incomeFromUrl) && incomeFromUrl > 0;
+
+  const [incomeMode, setIncomeMode] = useState<IncomeInputMode>(hasUrlIncome ? 'annual' : 'monthly');
+  const [annualIncome, setAnnualIncome] = useState<number>(hasUrlIncome ? incomeFromUrl : 0);
+  const [monthlyIncome, setMonthlyIncome] = useState<number>(0);
+  const [months, setMonths] = useState<number>(12);
   const [deductions, setDeductions] = useState({
     annualRent: 0,
     pension: 0,
@@ -80,6 +125,22 @@ function PersonalTaxCalculator() {
     lifeInsurance: 0,
   });
   const [showDeductions, setShowDeductions] = useState(false);
+
+  const income = incomeMode === 'annual' ? annualIncome : monthlyIncome * months;
+  const monthlyDivisor = incomeMode === 'monthly' && months > 0 ? months : 12;
+
+  const switchIncomeMode = (mode: IncomeInputMode) => {
+    if (mode === incomeMode) return;
+
+    if (mode === 'annual' && monthlyIncome > 0) {
+      setAnnualIncome(monthlyIncome * months);
+    } else if (mode === 'monthly' && annualIncome > 0) {
+      setMonthlyIncome(Math.round(annualIncome / 12));
+      setMonths(12);
+    }
+
+    setIncomeMode(mode);
+  };
 
   const rentRelief = Math.min(deductions.annualRent * 0.2, 500000);
   const totalDeductions = rentRelief + deductions.pension + deductions.nhf + deductions.nhis + deductions.lifeInsurance;
@@ -106,23 +167,108 @@ function PersonalTaxCalculator() {
   return (
     <>
       {/* Income Input */}
-      <div className="bg-white rounded-2xl p-5 border border-slate-100">
-        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
-          Annual Gross Income
-        </label>
-        <div className="relative">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-bold text-slate-300">₦</span>
-          <input
-            type="text"
-            inputMode="numeric"
-            value={income ? income.toLocaleString('en-NG') : ''}
-            onChange={(e) => {
-              const rawValue = e.target.value.replace(/[^0-9]/g, '');
-              setIncome(parseInt(rawValue, 10) || 0);
-            }}
-            placeholder="0"
-            className="w-full h-16 pl-12 pr-4 rounded-xl text-3xl font-bold text-slate-900 bg-slate-50 border-2 border-slate-200 focus:outline-none focus:bg-white focus:border-blue-500 placeholder:text-slate-300 number-display"
-          />
+      <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+        <div className="p-1.5 bg-slate-50 border-b border-slate-100 flex gap-1">
+          <button
+            type="button"
+            onClick={() => switchIncomeMode('monthly')}
+            className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${incomeMode === 'monthly'
+              ? 'bg-white text-slate-900 shadow-sm'
+              : 'text-slate-500'
+              }`}
+          >
+            I know my monthly pay
+          </button>
+          <button
+            type="button"
+            onClick={() => switchIncomeMode('annual')}
+            className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${incomeMode === 'annual'
+              ? 'bg-white text-slate-900 shadow-sm'
+              : 'text-slate-500'
+              }`}
+          >
+            I know my annual total
+          </button>
+        </div>
+
+        <div className="p-5">
+          {incomeMode === 'monthly' ? (
+            <>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Monthly gross income
+              </label>
+              <CurrencyInput value={monthlyIncome} onChange={setMonthlyIncome} />
+
+              <label className="block text-sm font-medium text-slate-700 mt-5 mb-3">
+                How many months?
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {[1, 3, 6, 9, 12].map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => setMonths(m)}
+                    className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${months === m
+                      ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                  >
+                    {m} {m === 1 ? 'month' : 'months'}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex items-center justify-center gap-3 mt-4">
+                <button
+                  type="button"
+                  onClick={() => setMonths((m) => Math.max(1, m - 1))}
+                  disabled={months <= 1}
+                  className="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-200 transition-colors"
+                  aria-label="Decrease months"
+                >
+                  −
+                </button>
+                <span className="text-sm font-medium text-slate-600 min-w-20 text-center">
+                  {months} {months === 1 ? 'month' : 'months'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setMonths((m) => Math.min(12, m + 1))}
+                  disabled={months >= 12}
+                  className="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-200 transition-colors"
+                  aria-label="Increase months"
+                >
+                  +
+                </button>
+              </div>
+
+              {monthlyIncome > 0 && (
+                <div className="mt-5 p-4 bg-blue-50 rounded-xl border border-blue-100">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-medium text-blue-600 uppercase tracking-wider">Annual gross income</p>
+                      <p className="text-xs text-blue-500 mt-0.5">
+                        {formatCurrency(monthlyIncome)} × {months} {months === 1 ? 'month' : 'months'}
+                      </p>
+                    </div>
+                    <p className="text-xl font-bold text-blue-900 number-display shrink-0">{formatCurrency(income)}</p>
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Total annual gross income
+              </label>
+              <CurrencyInput value={annualIncome} onChange={setAnnualIncome} />
+              {annualIncome > 0 && (
+                <p className="text-xs text-slate-500 mt-3">
+                  That&apos;s about {formatCurrency(Math.round(annualIncome / 12))} per month over 12 months
+                </p>
+              )}
+            </>
+          )}
         </div>
       </div>
 
@@ -202,11 +348,11 @@ function PersonalTaxCalculator() {
             <div className="flex gap-4 mt-4 pt-4 border-t border-white/20">
               <div>
                 <p className="text-emerald-100 text-[10px] uppercase tracking-wider">Effective Rate</p>
-                <p className="text-lg font-bold">{(result.effectiveRate * 100).toFixed(1)}%</p>
+                <p className="text-lg font-bold">{formatPercentage(result.effectiveRate)}</p>
               </div>
               <div>
                 <p className="text-emerald-100 text-[10px] uppercase tracking-wider">Monthly Tax</p>
-                <p className="text-lg font-bold number-display">{formatCurrency(result.totalTax / 12, { compact: true })}</p>
+                <p className="text-lg font-bold number-display">{formatCurrency(result.totalTax / monthlyDivisor)}</p>
               </div>
             </div>
           </div>
@@ -251,7 +397,7 @@ function PersonalTaxCalculator() {
               </div>
               <div className="text-right">
                 <p className="text-blue-100 text-xs">Monthly Take-Home</p>
-                <p className="text-xl font-bold number-display">{formatCurrency(result.netIncome / 12)}</p>
+                <p className="text-xl font-bold number-display">{formatCurrency(result.netIncome / monthlyDivisor)}</p>
               </div>
             </div>
           </div>
@@ -655,7 +801,7 @@ function CorporateTaxCalculator() {
               <div>
                 <p className={`text-[10px] uppercase tracking-wider ${result.isSmallCompany ? 'text-emerald-100' : 'text-indigo-100'
                   }`}>Effective Rate</p>
-                <p className="text-lg font-bold">{(result.effectiveTaxRate * 100).toFixed(1)}%</p>
+                <p className="text-lg font-bold">{formatPercentage(result.effectiveTaxRate)}</p>
               </div>
               <div>
                 <p className={`text-[10px] uppercase tracking-wider ${result.isSmallCompany ? 'text-emerald-100' : 'text-indigo-100'
@@ -807,6 +953,15 @@ function Row({
       <span className={`text-xs number-display ${bold ? 'font-bold text-slate-800' : muted ? 'text-slate-500' : 'font-medium text-slate-700'}`}>
         {value}
       </span>
+    </div>
+  );
+}
+
+function CalculatorSkeleton() {
+  return (
+    <div className="space-y-4">
+      <div className="h-28 bg-white rounded-2xl border border-slate-100 animate-pulse" />
+      <div className="h-16 bg-white rounded-2xl border border-slate-100 animate-pulse" />
     </div>
   );
 }

@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useIncomes } from '@/lib/hooks/useIncomes';
 import { useToast } from '@/components/ui/toast';
+import { DateInput } from '@/components/ui/input';
+import { toLocalDateInputValue, fromLocalDateInputValue } from '@/lib/utils/formatters';
 import type { IncomeCategory, IncomeFormData } from '@/lib/types';
 
 const categoryOptions = [
@@ -175,12 +177,11 @@ export default function AddIncomePage() {
             <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
               Date Received
             </label>
-            <input
-              type="date"
-              value={formData.date.toISOString().split('T')[0]}
-              onChange={(e) => setFormData({ ...formData, date: new Date(e.target.value) })}
-              max={new Date().toISOString().split('T')[0]}
-              className="w-full h-12 px-4 rounded-xl bg-slate-50 border-2 border-slate-200 text-slate-900 focus:outline-none focus:bg-white focus:border-blue-500"
+            <DateInput
+              value={toLocalDateInputValue(formData.date)}
+              onChange={(e) => setFormData({ ...formData, date: fromLocalDateInputValue(e.target.value) })}
+              max={toLocalDateInputValue(new Date())}
+              className="rounded-xl bg-slate-50 border-2 border-slate-200 text-slate-900 focus:bg-white focus:border-blue-500 focus:ring-0"
             />
           </div>
 

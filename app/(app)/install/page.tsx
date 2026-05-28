@@ -24,7 +24,7 @@ export default function InstallAppPage() {
 
       <main className="max-w-2xl mx-auto px-4 pb-24 space-y-6">
         {/* Intro */}
-        <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl p-6 text-white">
+        <div className="bg-linear-to-br from-blue-600 to-blue-700 rounded-2xl p-6 text-white">
           <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center mb-4">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
@@ -82,7 +82,7 @@ export default function InstallAppPage() {
           </div>
           <div className="p-4 space-y-4">
             <Step number={1}>
-              <p className="text-sm text-slate-700">Open <strong>Chrome</strong> and go to <span className="text-blue-600">taxtrackerng.com</span></p>
+              <p className="text-sm text-slate-700">Open <strong>Chrome</strong> and go to <span className="text-blue-600">{process.env.NEXT_PUBLIC_APP_URL || 'https://taxtracker.ng'}</span></p>
             </Step>
             <Step number={2}>
               <p className="text-sm text-slate-700">Tap the <strong>three dots menu</strong> in the top right</p>
@@ -117,7 +117,7 @@ export default function InstallAppPage() {
           </div>
           <div className="p-4 space-y-4">
             <Step number={1}>
-              <p className="text-sm text-slate-700">Open <strong>Chrome</strong> or <strong>Edge</strong> and go to <span className="text-blue-600">taxtrackerng.com</span></p>
+              <p className="text-sm text-slate-700">Open <strong>Chrome</strong> or <strong>Edge</strong> and go to <span className="text-blue-600">{process.env.NEXT_PUBLIC_APP_URL || 'https://taxtracker.ng'}</span></p>
             </Step>
             <Step number={2}>
               <p className="text-sm text-slate-700">Look for the <strong>install icon</strong> in the address bar (right side)</p>

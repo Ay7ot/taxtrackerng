@@ -12,23 +12,11 @@ export function formatCurrency(
     compact?: boolean;
   } = {}
 ): string {
-  const { showSymbol = true, showDecimals = false, compact = false } = options;
+  const { showSymbol = true, showDecimals = false } = options;
 
   // Handle undefined, null, or NaN values
   if (amount === undefined || amount === null || isNaN(amount)) {
     return showSymbol ? '₦0' : '0';
-  }
-
-  if (compact && Math.abs(amount) >= 1000000) {
-    const millions = amount / 1000000;
-    const formatted = millions.toFixed(1).replace(/\.0$/, '');
-    return showSymbol ? `₦${formatted}M` : `${formatted}M`;
-  }
-
-  if (compact && Math.abs(amount) >= 1000) {
-    const thousands = amount / 1000;
-    const formatted = thousands.toFixed(1).replace(/\.0$/, '');
-    return showSymbol ? `₦${formatted}K` : `${formatted}K`;
   }
 
   const formatted = amount.toLocaleString('en-NG', {
@@ -129,8 +117,9 @@ export function formatMonthYear(month: number, year: number): string {
  * @param decimals - Number of decimal places
  * @returns Formatted percentage string
  */
-export function formatPercentage(value: number, decimals: number = 1): string {
-  return `${(value * 100).toFixed(decimals)}%`;
+export function formatPercentage(value: number, decimals: number = 2): string {
+  const formatted = (value * 100).toFixed(decimals);
+  return `${formatted.replace(/\.?0+$/, '')}%`;
 }
 
 /**
@@ -175,6 +164,24 @@ export function capitalizeWords(text: string): string {
  */
 export function formatNumber(num: number): string {
   return num.toLocaleString('en-NG');
+}
+
+/**
+ * Format a Date for use in <input type="date"> without UTC timezone shift
+ */
+export function toLocalDateInputValue(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Parse a local <input type="date"> value into a Date at local midnight
+ */
+export function fromLocalDateInputValue(value: string): Date {
+  const [year, month, day] = value.split('-').map(Number);
+  return new Date(year, month - 1, day);
 }
 
 /**
