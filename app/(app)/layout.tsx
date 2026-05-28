@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { BottomNav } from '@/components/navigation/bottom-nav';
 import { InstallPrompt } from '@/components/pwa/install-prompt';
+import { PrivacyProvider } from '@/lib/privacy-context';
 
 export default function AppLayout({
   children,
@@ -48,12 +49,14 @@ export default function AppLayout({
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <main className="pb-nav">
-        {children}
-      </main>
-      <BottomNav />
-      <InstallPrompt />
-    </div>
+    <PrivacyProvider>
+      <div className="min-h-screen bg-slate-50">
+        <main className="pb-nav">
+          {children}
+        </main>
+        <BottomNav />
+        <InstallPrompt />
+      </div>
+    </PrivacyProvider>
   );
 }

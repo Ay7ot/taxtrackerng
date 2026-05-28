@@ -27,6 +27,14 @@ export function formatCurrency(
   return showSymbol ? `₦${formatted}` : formatted;
 }
 
+export function maskCurrency(showSymbol = true): string {
+  return showSymbol ? '₦••••••' : '••••••';
+}
+
+export function maskPercentage(): string {
+  return '••%';
+}
+
 /**
  * Parse a currency string back to number
  * @param value - Currency string (e.g., "₦1,000,000" or "1000000")

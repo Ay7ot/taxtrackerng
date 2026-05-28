@@ -3,9 +3,12 @@
 import { useState } from 'react';
 import { useIncomes } from '@/lib/hooks/useIncomes';
 import { calculateTax } from '@/lib/utils/tax-calculator';
-import { formatCurrency, formatDate, getCategoryLabel } from '@/lib/utils/formatters';
+import { formatDate, getCategoryLabel } from '@/lib/utils/formatters';
+import { usePrivacyFormatters } from '@/lib/hooks/use-privacy-formatters';
+import { HideAmountsToggle } from '@/components/privacy/hide-amounts-toggle';
 
 export default function HistoryPage() {
+  const { formatCurrency } = usePrivacyFormatters();
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const currentYear = new Date().getFullYear();
   const years = [currentYear, currentYear - 1, currentYear - 2];
@@ -30,9 +33,12 @@ export default function HistoryPage() {
       {/* Header */}
       <header className="bg-slate-900 text-white">
         <div className="max-w-2xl mx-auto px-4 pt-safe pb-5">
-          <div className="pt-3">
-            <p className="text-slate-400 text-xs font-medium">Tax Records</p>
-            <h1 className="text-xl font-bold mt-0.5">History</h1>
+          <div className="pt-3 flex items-center justify-between">
+            <div>
+              <p className="text-slate-400 text-xs font-medium">Tax Records</p>
+              <h1 className="text-xl font-bold mt-0.5">History</h1>
+            </div>
+            <HideAmountsToggle />
           </div>
 
           {/* Year Tabs */}
@@ -158,6 +164,7 @@ function groupByMonth(incomes: Array<{ id: string; source: string; amount: numbe
 }
 
 function MonthCard({ data }: { data: MonthData }) {
+  const { formatCurrency } = usePrivacyFormatters();
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (

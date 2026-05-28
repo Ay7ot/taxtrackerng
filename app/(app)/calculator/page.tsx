@@ -3,7 +3,9 @@
 import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { calculateTax, TAX_BANDS, calculateCorporateTax, formatCompanySize, SMALL_COMPANY_TURNOVER_LIMIT, SMALL_COMPANY_ASSETS_LIMIT, LARGE_COMPANY_TURNOVER_THRESHOLD, CIT_RATE, DEVELOPMENT_LEVY_RATE, MINIMUM_ETR } from '@/lib/utils/tax-calculator';
-import { formatCurrency, formatPercentage } from '@/lib/utils/formatters';
+import { formatCurrency as formatCurrencyRaw } from '@/lib/utils/formatters';
+import { usePrivacyFormatters } from '@/lib/hooks/use-privacy-formatters';
+import { HideAmountsToggle } from '@/components/privacy/hide-amounts-toggle';
 import type { CorporateTaxInput, CorporateTaxResult } from '@/lib/types';
 
 type CalculatorMode = 'personal' | 'corporate';
@@ -47,9 +49,12 @@ export default function CalculatorPage() {
       {/* Header */}
       <header className="bg-slate-900 text-white">
         <div className="max-w-2xl mx-auto px-4 pt-safe pb-6">
-          <div className="pt-3">
-            <p className="text-slate-400 text-xs font-medium">Nigerian Tax Act 2026</p>
-            <h1 className="text-xl font-bold mt-0.5">Tax Calculator</h1>
+          <div className="pt-3 flex items-start justify-between gap-3">
+            <div>
+              <p className="text-slate-400 text-xs font-medium">Nigerian Tax Act 2026</p>
+              <h1 className="text-xl font-bold mt-0.5">Tax Calculator</h1>
+            </div>
+            <HideAmountsToggle />
           </div>
         </div>
 
@@ -125,6 +130,7 @@ function PersonalTaxCalculator() {
     lifeInsurance: 0,
   });
   const [showDeductions, setShowDeductions] = useState(false);
+  const { formatCurrency, formatPercentage } = usePrivacyFormatters();
 
   const income = incomeMode === 'annual' ? annualIncome : monthlyIncome * months;
   const monthlyDivisor = incomeMode === 'monthly' && months > 0 ? months : 12;
@@ -412,8 +418,8 @@ function PersonalTaxCalculator() {
             <div key={i} className="flex items-center justify-between px-4 py-3">
               <span className="text-xs text-slate-600">
                 {band.max === Infinity
-                  ? `Above ${formatCurrency(band.min, { compact: true })}`
-                  : `${formatCurrency(band.min, { compact: true })} - ${formatCurrency(band.max, { compact: true })}`}
+                  ? `Above ${formatCurrencyRaw(band.min, { compact: true })}`
+                  : `${formatCurrencyRaw(band.min, { compact: true })} - ${formatCurrencyRaw(band.max, { compact: true })}`}
               </span>
               <span className={`text-xs font-semibold ${band.rate === 0 ? 'text-emerald-600' : 'text-slate-800'}`}>
                 {band.rate === 0 ? 'Tax Free' : `${(band.rate * 100).toFixed(0)}%`}
@@ -445,6 +451,7 @@ function CorporateTaxCalculator() {
   });
   const [showDeductions, setShowDeductions] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const { formatCurrency, formatPercentage } = usePrivacyFormatters();
 
   const result: CorporateTaxResult | null = inputs.profitBeforeTax > 0 || inputs.totalRevenue > 0
     ? calculateCorporateTax(inputs)

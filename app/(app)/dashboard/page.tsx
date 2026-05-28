@@ -3,11 +3,14 @@
 import { useAuth } from '@/lib/auth-context';
 import { useIncomeStats } from '@/lib/hooks/useIncomes';
 import { calculateTax } from '@/lib/utils/tax-calculator';
-import { formatCurrency, formatDate, getGreeting, getCategoryLabel, formatPercentage } from '@/lib/utils/formatters';
+import { formatDate, getGreeting, getCategoryLabel } from '@/lib/utils/formatters';
+import { usePrivacyFormatters } from '@/lib/hooks/use-privacy-formatters';
+import { HideAmountsToggle } from '@/components/privacy/hide-amounts-toggle';
 import Link from 'next/link';
 
 export default function DashboardPage() {
   const { user, userProfile } = useAuth();
+  const { formatCurrency, formatPercentage } = usePrivacyFormatters();
   const {
     isLoading,
     totalThisMonth,
@@ -36,11 +39,14 @@ export default function DashboardPage() {
               <p className="text-slate-400 text-xs font-medium">{getGreeting()}</p>
               <h1 className="text-xl font-bold mt-0.5">Hi, {firstName}! 👋</h1>
             </div>
-            <Link href="/profile">
-              <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-sm shadow-lg shadow-blue-600/30">
-                {firstName.charAt(0).toUpperCase()}
-              </div>
-            </Link>
+            <div className="flex items-center gap-2">
+              <HideAmountsToggle />
+              <Link href="/profile">
+                <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-sm shadow-lg shadow-blue-600/30">
+                  {firstName.charAt(0).toUpperCase()}
+                </div>
+              </Link>
+            </div>
           </div>
 
           {/* Main Stat Card */}
@@ -90,9 +96,9 @@ export default function DashboardPage() {
             color="blue"
           />
           <StatCard
-            label="Tax Rate So Far"
+            label="Tax Rate"
             value={formatPercentage(taxResult.effectiveRate)}
-            subtitle={`${formatCurrency(taxResult.totalTax, { compact: true })} tax`}
+            subtitle="Based on recorded income"
             icon={
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M23 6l-9.5 9.5-5-5L1 18" />
@@ -221,6 +227,7 @@ function StatCard({
   icon: React.ReactNode;
   color: 'blue' | 'amber' | 'emerald';
 }) {
+  const { formatPercentage } = usePrivacyFormatters();
   const colorConfig = {
     blue: { iconBg: 'bg-blue-600', shadow: 'shadow-blue-600/20' },
     amber: { iconBg: 'bg-amber-500', shadow: 'shadow-amber-500/20' },
@@ -292,6 +299,7 @@ function QuickAction({
 }
 
 function IncomeItem({ income, index }: { income: { id: string; source: string; amount: number; category: string; date: Date }; index: number }) {
+  const { formatCurrency } = usePrivacyFormatters();
   const bgColors = ['bg-amber-50', 'bg-emerald-50', 'bg-violet-50', 'bg-blue-50'];
   const iconColors = ['text-amber-600', 'text-emerald-600', 'text-violet-600', 'text-blue-600'];
 

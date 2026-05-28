@@ -10,10 +10,12 @@ import { deleteUser, reauthenticateWithCredential, EmailAuthProvider } from 'fir
 import { db, auth } from '@/lib/firebase';
 import { Modal, ConfirmModal } from '@/components/ui/modal';
 import { useToast } from '@/components/ui/toast';
+import { usePrivacy } from '@/lib/privacy-context';
 
 export default function ProfilePage() {
   const router = useRouter();
   const { user, userProfile, signOut, refreshProfile } = useAuth();
+  const { hideAmounts, setHideAmounts } = usePrivacy();
   const { success, error: showError } = useToast();
 
   // Modal states
@@ -134,6 +136,37 @@ export default function ProfilePage() {
           <div className="divide-y divide-slate-100">
             <MenuItem icon={<UserIcon />} iconBg="bg-blue-100" iconColor="text-blue-600" label="Edit Profile" onClick={openEditModal} />
             <MenuItem icon={<DownloadIcon />} iconBg="bg-emerald-100" iconColor="text-emerald-600" label="Export Data" onClick={handleExportData} />
+          </div>
+        </div>
+
+        {/* Privacy */}
+        <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+          <div className="px-4 py-3 bg-slate-50 border-b border-slate-100">
+            <h3 className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Privacy</h3>
+          </div>
+          <div className="px-4 py-3.5 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-slate-100 text-slate-600">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-slate-800">Hide amounts</p>
+                <p className="text-xs text-slate-500">Mask income and tax figures across the app</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setHideAmounts(!hideAmounts)}
+              className={`relative w-12 h-7 rounded-full transition-colors ${hideAmounts ? 'bg-blue-600' : 'bg-slate-300'}`}
+              aria-label="Toggle hide amounts"
+            >
+              <span
+                className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform ${hideAmounts ? 'translate-x-5' : 'translate-x-0'}`}
+              />
+            </button>
           </div>
         </div>
 

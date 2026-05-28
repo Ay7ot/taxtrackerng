@@ -3,7 +3,9 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useIncomes } from '@/lib/hooks/useIncomes';
-import { formatCurrency, formatDate, getCategoryLabel } from '@/lib/utils/formatters';
+import { formatDate, getCategoryLabel } from '@/lib/utils/formatters';
+import { usePrivacyFormatters } from '@/lib/hooks/use-privacy-formatters';
+import { HideAmountsToggle } from '@/components/privacy/hide-amounts-toggle';
 import { useToast } from '@/components/ui/toast';
 import type { IncomeCategory, Income } from '@/lib/types';
 
@@ -18,6 +20,7 @@ const categoryOptions = [
 ];
 
 export default function IncomePage() {
+  const { formatCurrency } = usePrivacyFormatters();
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<IncomeCategory | ''>('');
   const [selectedIncome, setSelectedIncome] = useState<Income | null>(null);
@@ -62,14 +65,17 @@ export default function IncomePage() {
                 {incomes.length} entries • {formatCurrency(totalIncome, { compact: true })}
               </p>
             </div>
-            <Link
-              href="/income/add"
-              className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/30"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
-                <path d="M12 5v14M5 12h14" />
-              </svg>
-            </Link>
+            <div className="flex items-center gap-2">
+              <HideAmountsToggle />
+              <Link
+                href="/income/add"
+                className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/30"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+              </Link>
+            </div>
           </div>
 
           {/* Search */}
@@ -200,6 +206,7 @@ function IncomeItem({
   index: number;
   onDelete: () => void;
 }) {
+  const { formatCurrency } = usePrivacyFormatters();
   const [showMenu, setShowMenu] = useState(false);
   const bgColors = ['bg-amber-50', 'bg-emerald-50', 'bg-violet-50', 'bg-blue-50'];
   const iconColors = ['text-amber-600', 'text-emerald-600', 'text-violet-600', 'text-blue-600'];
